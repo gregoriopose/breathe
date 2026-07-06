@@ -40,6 +40,7 @@
     margin: 0;
     height: 100%;
     overscroll-behavior: none;
+    background: var(--bg-bottom);
   }
 
   body {
@@ -282,7 +283,8 @@
   };
 
   const params = new URLSearchParams(location.search);
-  const app = APPS[params.get('return')] || null;
+  const returnID = (params.get('return') || '').trim().toLowerCase();
+  const app = APPS[returnID] || null;
 
   const orb = document.getElementById('orb');
   const orbWrap = document.getElementById('orbWrap');
