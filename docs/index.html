@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Breathe</title>
+<style>
+  :root {
+    --bg-top: #f4f7f8;
+    --bg-bottom: #e7edef;
+    --ink: #1c2b2e;
+    --ink-soft: rgba(28, 43, 46, 0.5);
+    --ink-faint: rgba(28, 43, 46, 0.32);
+    --orb-a: #7fd6cf;
+    --orb-b: #4f9dc9;
+    --ring: rgba(28, 43, 46, 0.14);
+    --ring-active: #4f9dc9;
+    --btn-bg: #1c2b2e;
+    --btn-ink: #f4f7f8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-top: #0b1416;
+      --bg-bottom: #060c0d;
+      --ink: #eef5f4;
+      --ink-soft: rgba(238, 245, 244, 0.58);
+      --ink-faint: rgba(238, 245, 244, 0.34);
+      --orb-a: #3fd1c4;
+      --orb-b: #3a6ea8;
+      --ring: rgba(238, 245, 244, 0.14);
+      --ring-active: #4fd6ff;
+      --btn-bg: #eef5f4;
+      --btn-ink: #0b1416;
+    }
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    overscroll-behavior: none;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(120% 120% at 50% 15%, var(--bg-top), var(--bg-bottom));
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+    color: var(--ink);
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    width: 100%;
+    padding: 32px;
+  }
+
+  .context-caption {
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+    height: 18px;
+    transition: opacity 0.4s ease;
+  }
+
+  .visual {
+    position: relative;
+    width: 240px;
+    height: 240px;
+  }
+
+  .orb-wrap {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .orb-wrap.hide {
+    opacity: 0;
+    transform: scale(0.94);
+    pointer-events: none;
+  }
+
+  .ring {
+    position: absolute;
+    inset: 0;
+    transform: rotate(-90deg);
+  }
+
+  .ring circle {
+    fill: none;
+    stroke-width: 1.5;
+  }
+
+  .ring .track {
+    stroke: var(--ring);
+  }
+
+  .ring .progress {
+    stroke: var(--ring-active);
+    stroke-linecap: round;
+    stroke-dasharray: 553;
+    stroke-dashoffset: 553;
+    opacity: 0.55;
+  }
+
+  .ring .progress.animate {
+    transition: stroke-dashoffset 10s linear;
+  }
+
+  .orb {
+    width: 108px;
+    height: 108px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 32% 28%, var(--orb-a), var(--orb-b) 70%);
+    box-shadow: 0 0 60px 10px color-mix(in srgb, var(--orb-b) 35%, transparent);
+    transform: scale(1);
+    transition: transform 4s cubic-bezier(0.45, 0, 0.4, 1), box-shadow 4s ease;
+  }
+
+  .orb.inhale {
+    transform: scale(1.55);
+    box-shadow: 0 0 90px 18px color-mix(in srgb, var(--orb-b) 45%, transparent);
+  }
+
+  .orb.hold {
+    /* stays at the inhaled size — no shrink while "holding" */
+    transform: scale(1.55);
+    box-shadow: 0 0 90px 18px color-mix(in srgb, var(--orb-b) 45%, transparent);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .orb.exhale {
+    transform: scale(1);
+    transition: transform 4s cubic-bezier(0.45, 0, 0.4, 1), box-shadow 4s ease;
+    box-shadow: 0 0 60px 10px color-mix(in srgb, var(--orb-b) 35%, transparent);
+  }
+
+  .phase-label {
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: 0.02em;
+    min-height: 30px;
+    opacity: 1;
+  }
+
+  .phase-label.fade {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .phase-label.pulse {
+    animation: labelIn 0.5s ease;
+  }
+
+  @keyframes labelIn {
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .unlock {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.6s ease 0.15s, transform 0.6s ease 0.15s;
+    pointer-events: none;
+  }
+
+  .unlock.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .check {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--ink-soft);
+  }
+
+  .unlock-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+  }
+
+  button {
+    appearance: none;
+    border: none;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .btn {
+    background: var(--btn-bg);
+    color: var(--btn-ink);
+    font-size: 14px;
+    padding: 12px 28px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+  }
+
+  .replay {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: none;
+    color: var(--ink-faint);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    padding: 8px;
+  }
+  .replay:hover { color: var(--ink-soft); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .orb, .orb.inhale, .orb.exhale { transition: opacity 4s ease; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="context-caption" id="caption"></div>
+
+  <div class="visual">
+    <div class="orb-wrap" id="orbWrap">
+      <svg class="ring" viewBox="0 0 190 190">
+        <circle class="track" cx="95" cy="95" r="88"></circle>
+        <circle class="progress" id="progressRing" cx="95" cy="95" r="88"></circle>
+      </svg>
+      <div class="orb" id="orb"></div>
+    </div>
+
+    <div class="unlock" id="unlock">
+      <div class="check">✓</div>
+      <div class="unlock-text">Podés continuar</div>
+      <button class="btn" id="continueBtn"></button>
+    </div>
+  </div>
+
+  <div class="phase-label" id="phaseLabel">Inhalá</div>
+</div>
+
+<button class="replay" id="replayBtn">◂ REPETIR</button>
+
+<script>
+  // Redes soportadas: id usado en ?return= y el URL scheme para reabrirlas.
+  const APPS = {
+    instagram: { name: 'Instagram', scheme: 'instagram://' },
+    tiktok:    { name: 'TikTok', scheme: 'tiktok://' },
+    twitter:   { name: 'X', scheme: 'twitter://' },
+    facebook:  { name: 'Facebook', scheme: 'fb://' },
+    snapchat:  { name: 'Snapchat', scheme: 'snapchat://' },
+    reddit:    { name: 'Reddit', scheme: 'reddit://' },
+    youtube:   { name: 'YouTube', scheme: 'youtube://' },
+    whatsapp:  { name: 'WhatsApp', scheme: 'whatsapp://' }
+  };
+
+  const params = new URLSearchParams(location.search);
+  const app = APPS[params.get('return')] || null;
+
+  const orb = document.getElementById('orb');
+  const orbWrap = document.getElementById('orbWrap');
+  const label = document.getElementById('phaseLabel');
+  const caption = document.getElementById('caption');
+  const ring = document.getElementById('progressRing');
+  const unlock = document.getElementById('unlock');
+  const replayBtn = document.getElementById('replayBtn');
+  const continueBtn = document.getElementById('continueBtn');
+
+  continueBtn.textContent = app ? `Abrir ${app.name}` : 'Continuar';
+
+  const CIRC = 2 * Math.PI * 88;
+  ring.style.strokeDasharray = CIRC;
+
+  let timers = [];
+
+  function setLabel(text) {
+    label.classList.remove('fade', 'pulse');
+    label.textContent = text;
+    void label.offsetWidth;
+    label.classList.add('pulse');
+  }
+
+  function clearTimers() {
+    timers.forEach(t => clearTimeout(t));
+    timers = [];
+  }
+
+  function captionText(secondsLeft) {
+    if (!app) return 'Un momento…';
+    return `Abriendo ${app.name} en ${secondsLeft}s…`;
+  }
+
+  function run() {
+    clearTimers();
+    unlock.classList.remove('show');
+    orbWrap.classList.remove('hide');
+    label.classList.remove('fade', 'pulse');
+    orb.style.transition = 'none';
+    orb.className = 'orb';
+    void orb.offsetWidth;
+    orb.style.transition = '';
+    ring.classList.remove('animate');
+    ring.style.transition = 'none';
+    ring.style.strokeDashoffset = CIRC;
+    void ring.getBoundingClientRect();
+
+    const start = Date.now();
+    caption.style.opacity = 1;
+    caption.textContent = captionText(10);
+
+    requestAnimationFrame(() => {
+      ring.classList.add('animate');
+      ring.style.strokeDashoffset = 0;
+    });
+
+    setLabel('Inhalá');
+    orb.classList.add('inhale');
+
+    timers.push(setTimeout(() => {
+      setLabel('Sostené');
+      orb.classList.remove('inhale');
+      orb.classList.add('hold');
+    }, 4000));
+
+    timers.push(setTimeout(() => {
+      setLabel('Exhalá');
+      orb.classList.remove('hold');
+      orb.classList.add('exhale');
+    }, 6000));
+
+    const countdownTick = () => {
+      const remaining = Math.max(0, 10 - Math.round((Date.now() - start) / 1000));
+      if (remaining > 0) {
+        caption.textContent = captionText(remaining);
+        timers.push(setTimeout(countdownTick, 1000));
+      }
+    };
+    timers.push(setTimeout(countdownTick, 1000));
+
+    timers.push(setTimeout(() => {
+      caption.style.opacity = 0;
+      label.classList.add('fade');
+      orbWrap.classList.add('hide');
+      unlock.classList.add('show');
+    }, 10000));
+  }
+
+  replayBtn.addEventListener('click', run);
+
+  continueBtn.addEventListener('click', () => {
+    if (app) {
+      // Gesto del usuario (el tap) habilita a Safari a abrir el URL scheme.
+      window.location.href = app.scheme;
+    } else {
+      run();
+    }
+  });
+
+  run();
+</script>
+</body>
+</html>
