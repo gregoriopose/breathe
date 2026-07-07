@@ -238,6 +238,18 @@
   }
   .replay:hover { color: var(--ink-soft); }
 
+  .attempt-count {
+    font-size: 12px;
+    color: var(--ink-faint);
+    letter-spacing: 0.03em;
+    opacity: 0;
+    transition: opacity 0.8s ease 0.3s;
+  }
+
+  .attempt-count.show {
+    opacity: 1;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .orb, .orb.inhale, .orb.exhale { transition: opacity 4s ease; transform: none; }
   }
@@ -265,6 +277,8 @@
   </div>
 
   <div class="phase-label" id="phaseLabel">Inhalá</div>
+
+  <div class="attempt-count" id="attemptCount"></div>
 </div>
 
 <button class="replay" id="replayBtn">◂ REPETIR</button>
@@ -285,12 +299,14 @@
   const params = new URLSearchParams(location.search);
   const returnID = (params.get('return') || '').trim().toLowerCase();
   const app = APPS[returnID] || null;
+  const count = parseInt(params.get('count'), 10);
 
   const orb = document.getElementById('orb');
   const orbWrap = document.getElementById('orbWrap');
   const label = document.getElementById('phaseLabel');
   const caption = document.getElementById('caption');
   const ring = document.getElementById('progressRing');
+  const attemptCount = document.getElementById('attemptCount');
   const unlock = document.getElementById('unlock');
   const replayBtn = document.getElementById('replayBtn');
   const continueBtn = document.getElementById('continueBtn');
@@ -337,6 +353,13 @@
     caption.style.opacity = 1;
     caption.textContent = captionText(10);
 
+    if (app && Number.isFinite(count) && count > 0) {
+      attemptCount.textContent = `Freno #${count} con ${app.name}`;
+      attemptCount.classList.add('show');
+    } else {
+      attemptCount.classList.remove('show');
+    }
+
     requestAnimationFrame(() => {
       ring.classList.add('animate');
       ring.style.strokeDashoffset = 0;
@@ -369,6 +392,7 @@
     timers.push(setTimeout(() => {
       caption.style.opacity = 0;
       label.classList.add('fade');
+      attemptCount.classList.remove('show');
       orbWrap.classList.add('hide');
       unlock.classList.add('show');
     }, 10000));
