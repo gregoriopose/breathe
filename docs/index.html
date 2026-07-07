@@ -3,41 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f1e6">
 <title>Breathe</title>
 <style>
   :root {
-    --canvas: #f1f5f4;
-    --canvas-deep: #e2eaea;
-    --ink: #142326;
-    --ink-soft: rgba(20, 35, 38, 0.58);
-    --ink-faint: rgba(20, 35, 38, 0.34);
-    --aura-1: #8fe6d6;
-    --aura-2: #57add6;
-    --aura-3: #6b86d9;
-    --core-a: #7fd6c7;
-    --core-b: #4a93c2;
-    --ring: rgba(20, 35, 38, 0.1);
-    --ring-active: #4a93c2;
-    --btn-bg: #142326;
-    --btn-ink: #f1f5f4;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --canvas: #071316;
-      --canvas-deep: #03080a;
-      --ink: #ecf6f4;
-      --ink-soft: rgba(236, 246, 244, 0.6);
-      --ink-faint: rgba(236, 246, 244, 0.36);
-      --aura-1: #4be3c9;
-      --aura-2: #3aa3d6;
-      --aura-3: #6f86ea;
-      --core-a: #4be0c9;
-      --core-b: #3f8fd0;
-      --ring: rgba(236, 246, 244, 0.12);
-      --ring-active: #57d6ff;
-      --btn-bg: #ecf6f4;
-      --btn-ink: #071316;
-    }
+    --canvas: #f6f1e6;
+    --canvas-deep: #ece3d0;
+    --ink: #2f2a22;
+    --ink-soft: rgba(47, 42, 34, 0.6);
+    --ink-faint: rgba(47, 42, 34, 0.36);
+    --halo: #b96b45;
+    --btn-bg: #2f2a22;
+    --btn-ink: #f6f1e6;
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -50,322 +27,158 @@
   }
 
   body {
-    position: relative;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     background: var(--canvas);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
     color: var(--ink);
     overflow: hidden;
     user-select: none;
     -webkit-user-select: none;
+    padding: max(28px, env(safe-area-inset-top)) 24px max(28px, env(safe-area-inset-bottom));
+    opacity: 0;
+    animation: pageIn 0.8s ease forwards;
   }
 
-  .serif {
-    font-family: ui-serif, "New York", Georgia, serif;
+  @keyframes pageIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
-  /* ---------- ambient backdrop: two slow-drifting soft blobs ---------- */
-
-  .ambient {
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-    z-index: 0;
+  .top {
+    font-size: 13px;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    min-height: 16px;
   }
-
-  .ambient .blob {
-    position: absolute;
-    width: 70vmax;
-    height: 70vmax;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.35;
-  }
-
-  .ambient .b1 {
-    top: -20%;
-    left: -15%;
-    background: radial-gradient(circle, var(--aura-3), transparent 70%);
-    animation: driftA 26s ease-in-out infinite;
-  }
-
-  .ambient .b2 {
-    bottom: -25%;
-    right: -20%;
-    background: radial-gradient(circle, var(--aura-1), transparent 70%);
-    animation: driftB 32s ease-in-out infinite;
-  }
-
-  @keyframes driftA {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(6%, 5%) scale(1.12); }
-  }
-
-  @keyframes driftB {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(-5%, -6%) scale(1.08); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .ambient .blob { animation: none; }
-  }
-
-  /* ---------- layout ---------- */
 
   .stage {
-    position: relative;
-    z-index: 1;
-    width: min(360px, 88vw);
-    height: min(520px, 82vh);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .scene {
-    position: relative;
-    width: 100%;
-    height: 100%;
-  }
-
-  .ack, .breath {
-    position: absolute;
-    inset: 0;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    opacity: 0;
-    transform: translateY(6px);
-    transition: opacity 0.7s ease, transform 0.7s ease;
-    pointer-events: none;
+    gap: 44px;
   }
 
-  .ack.show, .breath.show {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-  }
-
-  .ack-number {
-    font-size: 72px;
-    font-weight: 400;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-    background: linear-gradient(160deg, var(--aura-2), var(--aura-3));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .ack-text {
-    font-size: 17px;
-    color: var(--ink-soft);
-    text-align: center;
-    max-width: 220px;
-  }
-
-  .breath {
-    gap: 40px;
-  }
-
-  .caption {
-    font-size: 13px;
-    letter-spacing: 0.04em;
-    color: var(--ink-faint);
-    font-variant-numeric: tabular-nums;
-    height: 18px;
-    transition: opacity 0.4s ease;
-  }
-
-  .visual {
+  .halo-wrap {
     position: relative;
-    width: 260px;
-    height: 260px;
+    width: 220px;
+    height: 220px;
   }
 
-  .aura {
+  .halo-svg {
     position: absolute;
     inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.6s ease, transform 0.6s ease;
   }
 
-  .aura.hide {
-    opacity: 0;
-    transform: scale(0.94);
-    pointer-events: none;
-  }
-
-  .aura-layer {
-    position: absolute;
-    margin: auto;
-    inset: 0;
-    border-radius: 50%;
-    transform: scale(1);
-  }
-
-  .l1 {
-    width: 208px;
-    height: 208px;
-    background: radial-gradient(circle, var(--aura-1), transparent 72%);
-    filter: blur(20px);
-    opacity: 0.55;
-    transition: transform 4.4s cubic-bezier(0.45, 0, 0.4, 1);
-  }
-
-  .l2 {
-    width: 168px;
-    height: 168px;
-    background: radial-gradient(circle, var(--aura-2), transparent 72%);
-    filter: blur(15px);
-    opacity: 0.5;
-    transition: transform 4s cubic-bezier(0.45, 0, 0.4, 1);
-  }
-
-  .l3 {
-    width: 138px;
-    height: 138px;
-    background: radial-gradient(circle, var(--aura-3), transparent 72%);
-    filter: blur(18px);
-    opacity: 0.4;
-    transition: transform 3.7s cubic-bezier(0.45, 0, 0.4, 1);
-  }
-
-  .aura.inhale .l1 { transform: scale(1.3); }
-  .aura.inhale .l2 { transform: scale(1.42); }
-  .aura.inhale .l3 { transform: scale(1.22); }
-
-  .aura.hold .l1, .aura.hold .l2, .aura.hold .l3 {
-    transition-duration: 0.3s;
-  }
-  .aura.hold .l1 { transform: scale(1.3); }
-  .aura.hold .l2 { transform: scale(1.42); }
-  .aura.hold .l3 { transform: scale(1.22); }
-
-  .aura.exhale .l1 { transform: scale(1); transition-duration: 8.4s; }
-  .aura.exhale .l2 { transform: scale(1); transition-duration: 8s; }
-  .aura.exhale .l3 { transform: scale(1); transition-duration: 7.6s; }
-
-  .ring {
-    position: absolute;
-    inset: 0;
-    transform: rotate(-90deg);
-    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ring-active) 55%, transparent));
-  }
-
-  .ring circle {
+  .halo-svg circle {
     fill: none;
-    stroke-width: 1;
+    stroke: var(--halo);
+    opacity: 0.9;
   }
 
-  .ring .track {
-    stroke: var(--ring);
+  .figure {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    left: 50px;
+    top: 50px;
   }
 
-  .ring .progress {
-    stroke: var(--ring-active);
-    stroke-linecap: round;
-    stroke-dasharray: 553;
-    stroke-dashoffset: 553;
-    opacity: 0.5;
+  .figure > div {
+    position: absolute;
+    background: var(--ink);
   }
 
-  .ring .progress.animate {
-    transition: stroke-dashoffset 19s linear;
-  }
-
-  .core {
-    width: 92px;
-    height: 92px;
+  .fig-head {
+    width: 34px;
+    height: 34px;
+    left: 43px;
+    top: 6px;
     border-radius: 50%;
-    background: radial-gradient(circle at 32% 28%, var(--core-a), var(--core-b) 72%);
-    box-shadow: 0 0 40px 6px color-mix(in srgb, var(--core-b) 30%, transparent);
-    transform: scale(1);
-    transition: transform 4s cubic-bezier(0.45, 0, 0.4, 1), box-shadow 4s ease;
   }
 
-  .core.inhale {
-    transform: scale(1.45);
-    box-shadow: 0 0 62px 12px color-mix(in srgb, var(--core-b) 42%, transparent);
+  .fig-body {
+    width: 66px;
+    height: 48px;
+    left: 27px;
+    top: 34px;
+    border-radius: 34px 34px 22px 22px;
   }
 
-  .core.hold {
-    transform: scale(1.45);
-    box-shadow: 0 0 62px 12px color-mix(in srgb, var(--core-b) 42%, transparent);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  .fig-legs {
+    width: 104px;
+    height: 30px;
+    left: 8px;
+    top: 80px;
+    border-radius: 50%;
   }
 
-  .core.exhale {
-    transform: scale(1);
-    box-shadow: 0 0 40px 6px color-mix(in srgb, var(--core-b) 30%, transparent);
-    transition: transform 8s cubic-bezier(0.45, 0, 0.4, 1), box-shadow 8s ease;
+  .fig-arm {
+    width: 40px;
+    height: 13px;
+    top: 62px;
+    border-radius: 8px;
   }
 
-  .phase-label {
-    font-size: 23px;
-    font-weight: 400;
-    letter-spacing: 0.01em;
-    min-height: 30px;
-    opacity: 1;
+  .fig-arm-l {
+    left: 16px;
+    transform-origin: right center;
+    transform: rotate(-32deg);
   }
 
-  .phase-label.fade {
-    opacity: 0;
-    transition: opacity 0.5s ease;
+  .fig-arm-r {
+    left: 64px;
+    transform-origin: left center;
+    transform: rotate(32deg);
   }
 
-  .phase-label.pulse {
-    animation: labelIn 0.6s ease;
+  .bottom {
+    position: relative;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  @keyframes labelIn {
-    from { opacity: 0; transform: translateY(3px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .unlock {
+  .phase-info, .done-info {
     position: absolute;
     inset: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 18px;
+    gap: 6px;
     opacity: 0;
-    transform: translateY(6px);
-    transition: opacity 0.6s ease 0.15s, transform 0.6s ease 0.15s;
+    transform: translateY(4px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
     pointer-events: none;
   }
 
-  .unlock.show {
+  .phase-info.show, .done-info.show {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
   }
 
-  .check {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 1.5px solid var(--ink-soft);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    color: var(--ink-soft);
+  .phase-word {
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
   }
 
-  .unlock-text {
-    font-size: 15px;
-    color: var(--ink-soft);
-    letter-spacing: 0.02em;
+  .phase-seconds {
+    font-size: 40px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    line-height: 1;
   }
 
   button {
@@ -385,72 +198,50 @@
   }
 
   .replay {
-    position: fixed;
-    z-index: 1;
-    bottom: 28px;
-    left: 50%;
-    transform: translateX(-50%);
     background: none;
     color: var(--ink-faint);
     font-size: 12px;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
     padding: 8px;
   }
   .replay:hover { color: var(--ink-soft); }
 
   @media (prefers-reduced-motion: reduce) {
-    .core, .core.inhale, .core.exhale,
-    .l1, .l2, .l3,
-    .aura.inhale .l1, .aura.inhale .l2, .aura.inhale .l3,
-    .aura.exhale .l1, .aura.exhale .l2, .aura.exhale .l3 {
-      transition: opacity 4s ease;
-      transform: none;
-    }
+    body { animation: none; opacity: 1; }
   }
 </style>
 </head>
 <body>
 
-<div class="ambient" aria-hidden="true">
-  <div class="blob b1"></div>
-  <div class="blob b2"></div>
-</div>
+<div class="top" id="topLabel"></div>
 
 <div class="stage">
-  <div class="scene">
-    <div class="ack" id="ack">
-      <div class="ack-number serif" id="ackNumber"></div>
-      <div class="ack-text serif" id="ackText"></div>
+  <div class="halo-wrap">
+    <svg class="halo-svg" viewBox="0 0 220 220">
+      <circle id="haloRing" cx="110" cy="110" r="56" stroke-width="2"></circle>
+    </svg>
+
+    <div class="figure" aria-hidden="true">
+      <div class="fig-arm fig-arm-l"></div>
+      <div class="fig-arm fig-arm-r"></div>
+      <div class="fig-legs"></div>
+      <div class="fig-body"></div>
+      <div class="fig-head"></div>
     </div>
+  </div>
 
-    <div class="breath" id="breathScene">
-      <div class="caption" id="caption"></div>
-
-      <div class="visual">
-        <div class="aura" id="aura">
-          <div class="aura-layer l1"></div>
-          <div class="aura-layer l2"></div>
-          <div class="aura-layer l3"></div>
-          <svg class="ring" viewBox="0 0 190 190">
-            <circle class="track" cx="95" cy="95" r="88"></circle>
-            <circle class="progress" id="progressRing" cx="95" cy="95" r="88"></circle>
-          </svg>
-          <div class="core" id="core"></div>
-        </div>
-
-        <div class="unlock" id="unlock">
-          <div class="check">✓</div>
-          <div class="unlock-text">Podés continuar</div>
-          <button class="btn" id="continueBtn"></button>
-        </div>
-      </div>
-
-      <div class="phase-label serif" id="phaseLabel">Inhalá</div>
+  <div class="bottom">
+    <div class="phase-info" id="phaseInfo">
+      <div class="phase-word" id="phaseWord">Inhalá</div>
+      <div class="phase-seconds" id="phaseSeconds">4</div>
+    </div>
+    <div class="done-info" id="doneInfo">
+      <button class="btn" id="continueBtn"></button>
     </div>
   </div>
 </div>
 
-<button class="replay" id="replayBtn">◂ REPETIR</button>
+<button class="replay" id="replayBtn">REPETIR</button>
 
 <script>
   // Redes soportadas: id usado en ?return= y el URL scheme para reabrirlas.
@@ -471,38 +262,54 @@
   const count = parseInt(params.get('count'), 10);
   const hasCount = app && Number.isFinite(count) && count > 0;
 
-  const core = document.getElementById('core');
-  const aura = document.getElementById('aura');
-  const label = document.getElementById('phaseLabel');
-  const caption = document.getElementById('caption');
-  const ring = document.getElementById('progressRing');
-  const unlock = document.getElementById('unlock');
+  const topLabel = document.getElementById('topLabel');
+  const halo = document.getElementById('haloRing');
+  const phaseInfo = document.getElementById('phaseInfo');
+  const doneInfo = document.getElementById('doneInfo');
+  const phaseWord = document.getElementById('phaseWord');
+  const phaseSeconds = document.getElementById('phaseSeconds');
   const replayBtn = document.getElementById('replayBtn');
   const continueBtn = document.getElementById('continueBtn');
-  const ack = document.getElementById('ack');
-  const ackNumber = document.getElementById('ackNumber');
-  const ackText = document.getElementById('ackText');
-  const breathScene = document.getElementById('breathScene');
 
   continueBtn.textContent = app ? `Abrir ${app.name}` : 'Continuar';
 
-  const CIRC = 2 * Math.PI * 88;
-  ring.style.strokeDasharray = CIRC;
+  topLabel.textContent = hasCount
+    ? (count === 1 ? `Primera pausa con ${app.name}` : `${count} pausas con ${app.name}`)
+    : (app ? app.name : '');
 
   // Técnica 4-7-8: inhalá 4s, sostené 7s, exhalá 8s.
   const INHALE_S = 4;
   const HOLD_S = 7;
   const EXHALE_S = 8;
   const TOTAL_S = INHALE_S + HOLD_S + EXHALE_S;
-  const ACK_MS = 2400;
+
+  // El halo mantiene el borde interior fijo pegado a la figura: crece
+  // únicamente hacia afuera (inhalá) y se retrae hacia adentro (exhalá).
+  const R_IN = 56;
+  const SW_REST = 2;
+  const SW_MAX = 30;
 
   let timers = [];
+  let haloRAF = null;
 
-  function setLabel(text) {
-    label.classList.remove('fade', 'pulse');
-    label.textContent = text;
-    void label.offsetWidth;
-    label.classList.add('pulse');
+  function setHaloWidth(sw) {
+    halo.setAttribute('r', R_IN + sw / 2);
+    halo.setAttribute('stroke-width', sw);
+  }
+
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function animateHalo(fromSW, toSW, durationMs) {
+    if (haloRAF) cancelAnimationFrame(haloRAF);
+    const start = performance.now();
+    function frame(now) {
+      const t = Math.min(1, (now - start) / durationMs);
+      setHaloWidth(fromSW + (toSW - fromSW) * easeInOutCubic(t));
+      if (t < 1) haloRAF = requestAnimationFrame(frame);
+    }
+    haloRAF = requestAnimationFrame(frame);
   }
 
   function clearTimers() {
@@ -510,90 +317,45 @@
     timers = [];
   }
 
-  function captionText(secondsLeft) {
-    if (!app) return 'Un momento…';
-    return `Abriendo ${app.name} en ${secondsLeft}s…`;
+  function runPhaseCountdown(seconds) {
+    let remaining = seconds;
+    phaseSeconds.textContent = remaining;
+    const tick = () => {
+      remaining -= 1;
+      if (remaining > 0) {
+        phaseSeconds.textContent = remaining;
+        timers.push(setTimeout(tick, 1000));
+      }
+    };
+    timers.push(setTimeout(tick, 1000));
   }
 
   function run() {
     clearTimers();
-    unlock.classList.remove('show');
-    aura.classList.remove('hide');
-    label.classList.remove('fade', 'pulse');
-    core.style.transition = 'none';
-    core.className = 'core';
-    void core.offsetWidth;
-    core.style.transition = '';
-    aura.className = 'aura';
-    ring.classList.remove('animate');
-    ring.style.transition = 'none';
-    ring.style.strokeDashoffset = CIRC;
-    void ring.getBoundingClientRect();
+    doneInfo.classList.remove('show');
+    phaseInfo.classList.add('show');
+    setHaloWidth(SW_REST);
 
-    const start = Date.now();
-    caption.style.opacity = 1;
-    caption.textContent = captionText(TOTAL_S);
-
-    requestAnimationFrame(() => {
-      ring.classList.add('animate');
-      ring.style.strokeDashoffset = 0;
-    });
-
-    setLabel('Inhalá');
-    core.classList.add('inhale');
-    aura.classList.add('inhale');
+    phaseWord.textContent = 'Inhalá';
+    runPhaseCountdown(INHALE_S);
+    animateHalo(SW_REST, SW_MAX, INHALE_S * 1000);
 
     timers.push(setTimeout(() => {
-      setLabel('Sostené');
-      core.classList.remove('inhale');
-      core.classList.add('hold');
-      aura.classList.remove('inhale');
-      aura.classList.add('hold');
+      phaseWord.textContent = 'Sostené';
+      runPhaseCountdown(HOLD_S);
+      setHaloWidth(SW_MAX);
     }, INHALE_S * 1000));
 
     timers.push(setTimeout(() => {
-      setLabel('Exhalá');
-      core.classList.remove('hold');
-      core.classList.add('exhale');
-      aura.classList.remove('hold');
-      aura.classList.add('exhale');
+      phaseWord.textContent = 'Exhalá';
+      runPhaseCountdown(EXHALE_S);
+      animateHalo(SW_MAX, SW_REST, EXHALE_S * 1000);
     }, (INHALE_S + HOLD_S) * 1000));
 
-    const countdownTick = () => {
-      const remaining = Math.max(0, TOTAL_S - Math.round((Date.now() - start) / 1000));
-      if (remaining > 0) {
-        caption.textContent = captionText(remaining);
-        timers.push(setTimeout(countdownTick, 1000));
-      }
-    };
-    timers.push(setTimeout(countdownTick, 1000));
-
     timers.push(setTimeout(() => {
-      caption.style.opacity = 0;
-      label.classList.add('fade');
-      aura.classList.add('hide');
-      unlock.classList.add('show');
+      phaseInfo.classList.remove('show');
+      doneInfo.classList.add('show');
     }, TOTAL_S * 1000));
-  }
-
-  function showBreathing() {
-    ack.classList.remove('show');
-    breathScene.classList.add('show');
-    run();
-  }
-
-  function startSequence() {
-    if (hasCount) {
-      ackNumber.textContent = count;
-      ackText.textContent = count === 1
-        ? `primera pausa consciente con ${app.name}`
-        : `pausas conscientes con ${app.name}`;
-      breathScene.classList.remove('show');
-      ack.classList.add('show');
-      timers.push(setTimeout(showBreathing, ACK_MS));
-    } else {
-      showBreathing();
-    }
   }
 
   replayBtn.addEventListener('click', run);
@@ -607,7 +369,7 @@
     }
   });
 
-  startSequence();
+  run();
 </script>
 </body>
 </html>
