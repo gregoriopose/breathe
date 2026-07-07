@@ -6,31 +6,37 @@
 <title>Breathe</title>
 <style>
   :root {
-    --bg-top: #f4f7f8;
-    --bg-bottom: #e7edef;
-    --ink: #1c2b2e;
-    --ink-soft: rgba(28, 43, 46, 0.5);
-    --ink-faint: rgba(28, 43, 46, 0.32);
-    --orb-a: #7fd6cf;
-    --orb-b: #4f9dc9;
-    --ring: rgba(28, 43, 46, 0.14);
-    --ring-active: #4f9dc9;
-    --btn-bg: #1c2b2e;
-    --btn-ink: #f4f7f8;
+    --canvas: #f1f5f4;
+    --canvas-deep: #e2eaea;
+    --ink: #142326;
+    --ink-soft: rgba(20, 35, 38, 0.58);
+    --ink-faint: rgba(20, 35, 38, 0.34);
+    --aura-1: #8fe6d6;
+    --aura-2: #57add6;
+    --aura-3: #6b86d9;
+    --core-a: #7fd6c7;
+    --core-b: #4a93c2;
+    --ring: rgba(20, 35, 38, 0.1);
+    --ring-active: #4a93c2;
+    --btn-bg: #142326;
+    --btn-ink: #f1f5f4;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg-top: #0b1416;
-      --bg-bottom: #060c0d;
-      --ink: #eef5f4;
-      --ink-soft: rgba(238, 245, 244, 0.58);
-      --ink-faint: rgba(238, 245, 244, 0.34);
-      --orb-a: #3fd1c4;
-      --orb-b: #3a6ea8;
-      --ring: rgba(238, 245, 244, 0.14);
-      --ring-active: #4fd6ff;
-      --btn-bg: #eef5f4;
-      --btn-ink: #0b1416;
+      --canvas: #071316;
+      --canvas-deep: #03080a;
+      --ink: #ecf6f4;
+      --ink-soft: rgba(236, 246, 244, 0.6);
+      --ink-faint: rgba(236, 246, 244, 0.36);
+      --aura-1: #4be3c9;
+      --aura-2: #3aa3d6;
+      --aura-3: #6f86ea;
+      --core-a: #4be0c9;
+      --core-b: #3f8fd0;
+      --ring: rgba(236, 246, 244, 0.12);
+      --ring-active: #57d6ff;
+      --btn-bg: #ecf6f4;
+      --btn-ink: #071316;
     }
   }
 
@@ -40,31 +46,134 @@
     margin: 0;
     height: 100%;
     overscroll-behavior: none;
-    background: var(--bg-bottom);
+    background: var(--canvas-deep);
   }
 
   body {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: radial-gradient(120% 120% at 50% 15%, var(--bg-top), var(--bg-bottom));
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+    background: var(--canvas);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
     color: var(--ink);
     overflow: hidden;
     user-select: none;
     -webkit-user-select: none;
   }
 
+  .serif {
+    font-family: ui-serif, "New York", Georgia, serif;
+  }
+
+  /* ---------- ambient backdrop: two slow-drifting soft blobs ---------- */
+
+  .ambient {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .ambient .blob {
+    position: absolute;
+    width: 70vmax;
+    height: 70vmax;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.35;
+  }
+
+  .ambient .b1 {
+    top: -20%;
+    left: -15%;
+    background: radial-gradient(circle, var(--aura-3), transparent 70%);
+    animation: driftA 26s ease-in-out infinite;
+  }
+
+  .ambient .b2 {
+    bottom: -25%;
+    right: -20%;
+    background: radial-gradient(circle, var(--aura-1), transparent 70%);
+    animation: driftB 32s ease-in-out infinite;
+  }
+
+  @keyframes driftA {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(6%, 5%) scale(1.12); }
+  }
+
+  @keyframes driftB {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-5%, -6%) scale(1.08); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ambient .blob { animation: none; }
+  }
+
+  /* ---------- layout ---------- */
+
   .stage {
+    position: relative;
+    z-index: 1;
+    width: min(360px, 88vw);
+    height: min(520px, 82vh);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .scene {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .ack, .breath {
+    position: absolute;
+    inset: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 40px;
-    width: 100%;
-    padding: 32px;
+    justify-content: center;
+    gap: 12px;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+    pointer-events: none;
   }
 
-  .context-caption {
+  .ack.show, .breath.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .ack-number {
+    font-size: 72px;
+    font-weight: 400;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(160deg, var(--aura-2), var(--aura-3));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .ack-text {
+    font-size: 17px;
+    color: var(--ink-soft);
+    text-align: center;
+    max-width: 220px;
+  }
+
+  .breath {
+    gap: 40px;
+  }
+
+  .caption {
     font-size: 13px;
     letter-spacing: 0.04em;
     color: var(--ink-faint);
@@ -75,11 +184,11 @@
 
   .visual {
     position: relative;
-    width: 240px;
-    height: 240px;
+    width: 260px;
+    height: 260px;
   }
 
-  .orb-wrap {
+  .aura {
     position: absolute;
     inset: 0;
     display: flex;
@@ -88,21 +197,72 @@
     transition: opacity 0.6s ease, transform 0.6s ease;
   }
 
-  .orb-wrap.hide {
+  .aura.hide {
     opacity: 0;
     transform: scale(0.94);
     pointer-events: none;
   }
 
+  .aura-layer {
+    position: absolute;
+    margin: auto;
+    inset: 0;
+    border-radius: 50%;
+    transform: scale(1);
+  }
+
+  .l1 {
+    width: 208px;
+    height: 208px;
+    background: radial-gradient(circle, var(--aura-1), transparent 72%);
+    filter: blur(20px);
+    opacity: 0.55;
+    transition: transform 4.4s cubic-bezier(0.45, 0, 0.4, 1);
+  }
+
+  .l2 {
+    width: 168px;
+    height: 168px;
+    background: radial-gradient(circle, var(--aura-2), transparent 72%);
+    filter: blur(15px);
+    opacity: 0.5;
+    transition: transform 4s cubic-bezier(0.45, 0, 0.4, 1);
+  }
+
+  .l3 {
+    width: 138px;
+    height: 138px;
+    background: radial-gradient(circle, var(--aura-3), transparent 72%);
+    filter: blur(18px);
+    opacity: 0.4;
+    transition: transform 3.7s cubic-bezier(0.45, 0, 0.4, 1);
+  }
+
+  .aura.inhale .l1 { transform: scale(1.3); }
+  .aura.inhale .l2 { transform: scale(1.42); }
+  .aura.inhale .l3 { transform: scale(1.22); }
+
+  .aura.hold .l1, .aura.hold .l2, .aura.hold .l3 {
+    transition-duration: 0.3s;
+  }
+  .aura.hold .l1 { transform: scale(1.3); }
+  .aura.hold .l2 { transform: scale(1.42); }
+  .aura.hold .l3 { transform: scale(1.22); }
+
+  .aura.exhale .l1 { transform: scale(1); transition-duration: 8.4s; }
+  .aura.exhale .l2 { transform: scale(1); transition-duration: 8s; }
+  .aura.exhale .l3 { transform: scale(1); transition-duration: 7.6s; }
+
   .ring {
     position: absolute;
     inset: 0;
     transform: rotate(-90deg);
+    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ring-active) 55%, transparent));
   }
 
   .ring circle {
     fill: none;
-    stroke-width: 1.5;
+    stroke-width: 1;
   }
 
   .ring .track {
@@ -114,45 +274,44 @@
     stroke-linecap: round;
     stroke-dasharray: 553;
     stroke-dashoffset: 553;
-    opacity: 0.55;
+    opacity: 0.5;
   }
 
   .ring .progress.animate {
     transition: stroke-dashoffset 19s linear;
   }
 
-  .orb {
-    width: 108px;
-    height: 108px;
+  .core {
+    width: 92px;
+    height: 92px;
     border-radius: 50%;
-    background: radial-gradient(circle at 32% 28%, var(--orb-a), var(--orb-b) 70%);
-    box-shadow: 0 0 60px 10px color-mix(in srgb, var(--orb-b) 35%, transparent);
+    background: radial-gradient(circle at 32% 28%, var(--core-a), var(--core-b) 72%);
+    box-shadow: 0 0 40px 6px color-mix(in srgb, var(--core-b) 30%, transparent);
     transform: scale(1);
     transition: transform 4s cubic-bezier(0.45, 0, 0.4, 1), box-shadow 4s ease;
   }
 
-  .orb.inhale {
-    transform: scale(1.55);
-    box-shadow: 0 0 90px 18px color-mix(in srgb, var(--orb-b) 45%, transparent);
+  .core.inhale {
+    transform: scale(1.45);
+    box-shadow: 0 0 62px 12px color-mix(in srgb, var(--core-b) 42%, transparent);
   }
 
-  .orb.hold {
-    /* stays at the inhaled size — no shrink while "holding" */
-    transform: scale(1.55);
-    box-shadow: 0 0 90px 18px color-mix(in srgb, var(--orb-b) 45%, transparent);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  .core.hold {
+    transform: scale(1.45);
+    box-shadow: 0 0 62px 12px color-mix(in srgb, var(--core-b) 42%, transparent);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 
-  .orb.exhale {
+  .core.exhale {
     transform: scale(1);
+    box-shadow: 0 0 40px 6px color-mix(in srgb, var(--core-b) 30%, transparent);
     transition: transform 8s cubic-bezier(0.45, 0, 0.4, 1), box-shadow 8s ease;
-    box-shadow: 0 0 60px 10px color-mix(in srgb, var(--orb-b) 35%, transparent);
   }
 
   .phase-label {
-    font-size: 22px;
-    font-weight: 300;
-    letter-spacing: 0.02em;
+    font-size: 23px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
     min-height: 30px;
     opacity: 1;
   }
@@ -163,7 +322,7 @@
   }
 
   .phase-label.pulse {
-    animation: labelIn 0.5s ease;
+    animation: labelIn 0.6s ease;
   }
 
   @keyframes labelIn {
@@ -227,6 +386,7 @@
 
   .replay {
     position: fixed;
+    z-index: 1;
     bottom: 28px;
     left: 50%;
     transform: translateX(-50%);
@@ -238,47 +398,56 @@
   }
   .replay:hover { color: var(--ink-soft); }
 
-  .attempt-count {
-    font-size: 12px;
-    color: var(--ink-faint);
-    letter-spacing: 0.03em;
-    opacity: 0;
-    transition: opacity 0.8s ease 0.3s;
-  }
-
-  .attempt-count.show {
-    opacity: 1;
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .orb, .orb.inhale, .orb.exhale { transition: opacity 4s ease; transform: none; }
+    .core, .core.inhale, .core.exhale,
+    .l1, .l2, .l3,
+    .aura.inhale .l1, .aura.inhale .l2, .aura.inhale .l3,
+    .aura.exhale .l1, .aura.exhale .l2, .aura.exhale .l3 {
+      transition: opacity 4s ease;
+      transform: none;
+    }
   }
 </style>
 </head>
 <body>
 
-<div class="stage">
-  <div class="context-caption" id="caption"></div>
+<div class="ambient" aria-hidden="true">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+</div>
 
-  <div class="visual">
-    <div class="orb-wrap" id="orbWrap">
-      <svg class="ring" viewBox="0 0 190 190">
-        <circle class="track" cx="95" cy="95" r="88"></circle>
-        <circle class="progress" id="progressRing" cx="95" cy="95" r="88"></circle>
-      </svg>
-      <div class="orb" id="orb"></div>
+<div class="stage">
+  <div class="scene">
+    <div class="ack" id="ack">
+      <div class="ack-number serif" id="ackNumber"></div>
+      <div class="ack-text serif" id="ackText"></div>
     </div>
 
-    <div class="unlock" id="unlock">
-      <div class="check">✓</div>
-      <div class="unlock-text">Podés continuar</div>
-      <button class="btn" id="continueBtn"></button>
+    <div class="breath" id="breathScene">
+      <div class="caption" id="caption"></div>
+
+      <div class="visual">
+        <div class="aura" id="aura">
+          <div class="aura-layer l1"></div>
+          <div class="aura-layer l2"></div>
+          <div class="aura-layer l3"></div>
+          <svg class="ring" viewBox="0 0 190 190">
+            <circle class="track" cx="95" cy="95" r="88"></circle>
+            <circle class="progress" id="progressRing" cx="95" cy="95" r="88"></circle>
+          </svg>
+          <div class="core" id="core"></div>
+        </div>
+
+        <div class="unlock" id="unlock">
+          <div class="check">✓</div>
+          <div class="unlock-text">Podés continuar</div>
+          <button class="btn" id="continueBtn"></button>
+        </div>
+      </div>
+
+      <div class="phase-label serif" id="phaseLabel">Inhalá</div>
     </div>
   </div>
-
-  <div class="phase-label" id="phaseLabel">Inhalá</div>
-
-  <div class="attempt-count" id="attemptCount"></div>
 </div>
 
 <button class="replay" id="replayBtn">◂ REPETIR</button>
@@ -300,16 +469,20 @@
   const returnID = (params.get('return') || '').trim().toLowerCase();
   const app = APPS[returnID] || null;
   const count = parseInt(params.get('count'), 10);
+  const hasCount = app && Number.isFinite(count) && count > 0;
 
-  const orb = document.getElementById('orb');
-  const orbWrap = document.getElementById('orbWrap');
+  const core = document.getElementById('core');
+  const aura = document.getElementById('aura');
   const label = document.getElementById('phaseLabel');
   const caption = document.getElementById('caption');
   const ring = document.getElementById('progressRing');
-  const attemptCount = document.getElementById('attemptCount');
   const unlock = document.getElementById('unlock');
   const replayBtn = document.getElementById('replayBtn');
   const continueBtn = document.getElementById('continueBtn');
+  const ack = document.getElementById('ack');
+  const ackNumber = document.getElementById('ackNumber');
+  const ackText = document.getElementById('ackText');
+  const breathScene = document.getElementById('breathScene');
 
   continueBtn.textContent = app ? `Abrir ${app.name}` : 'Continuar';
 
@@ -321,6 +494,7 @@
   const HOLD_S = 7;
   const EXHALE_S = 8;
   const TOTAL_S = INHALE_S + HOLD_S + EXHALE_S;
+  const ACK_MS = 2400;
 
   let timers = [];
 
@@ -344,12 +518,13 @@
   function run() {
     clearTimers();
     unlock.classList.remove('show');
-    orbWrap.classList.remove('hide');
+    aura.classList.remove('hide');
     label.classList.remove('fade', 'pulse');
-    orb.style.transition = 'none';
-    orb.className = 'orb';
-    void orb.offsetWidth;
-    orb.style.transition = '';
+    core.style.transition = 'none';
+    core.className = 'core';
+    void core.offsetWidth;
+    core.style.transition = '';
+    aura.className = 'aura';
     ring.classList.remove('animate');
     ring.style.transition = 'none';
     ring.style.strokeDashoffset = CIRC;
@@ -359,31 +534,29 @@
     caption.style.opacity = 1;
     caption.textContent = captionText(TOTAL_S);
 
-    if (app && Number.isFinite(count) && count > 0) {
-      attemptCount.textContent = `Freno #${count} con ${app.name}`;
-      attemptCount.classList.add('show');
-    } else {
-      attemptCount.classList.remove('show');
-    }
-
     requestAnimationFrame(() => {
       ring.classList.add('animate');
       ring.style.strokeDashoffset = 0;
     });
 
     setLabel('Inhalá');
-    orb.classList.add('inhale');
+    core.classList.add('inhale');
+    aura.classList.add('inhale');
 
     timers.push(setTimeout(() => {
       setLabel('Sostené');
-      orb.classList.remove('inhale');
-      orb.classList.add('hold');
+      core.classList.remove('inhale');
+      core.classList.add('hold');
+      aura.classList.remove('inhale');
+      aura.classList.add('hold');
     }, INHALE_S * 1000));
 
     timers.push(setTimeout(() => {
       setLabel('Exhalá');
-      orb.classList.remove('hold');
-      orb.classList.add('exhale');
+      core.classList.remove('hold');
+      core.classList.add('exhale');
+      aura.classList.remove('hold');
+      aura.classList.add('exhale');
     }, (INHALE_S + HOLD_S) * 1000));
 
     const countdownTick = () => {
@@ -398,10 +571,29 @@
     timers.push(setTimeout(() => {
       caption.style.opacity = 0;
       label.classList.add('fade');
-      attemptCount.classList.remove('show');
-      orbWrap.classList.add('hide');
+      aura.classList.add('hide');
       unlock.classList.add('show');
     }, TOTAL_S * 1000));
+  }
+
+  function showBreathing() {
+    ack.classList.remove('show');
+    breathScene.classList.add('show');
+    run();
+  }
+
+  function startSequence() {
+    if (hasCount) {
+      ackNumber.textContent = count;
+      ackText.textContent = count === 1
+        ? `primera pausa consciente con ${app.name}`
+        : `pausas conscientes con ${app.name}`;
+      breathScene.classList.remove('show');
+      ack.classList.add('show');
+      timers.push(setTimeout(showBreathing, ACK_MS));
+    } else {
+      showBreathing();
+    }
   }
 
   replayBtn.addEventListener('click', run);
@@ -415,7 +607,7 @@
     }
   });
 
-  run();
+  startSequence();
 </script>
 </body>
 </html>
