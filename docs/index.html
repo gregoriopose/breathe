@@ -118,7 +118,7 @@
   }
 
   .ring .progress.animate {
-    transition: stroke-dashoffset 10s linear;
+    transition: stroke-dashoffset 19s linear;
   }
 
   .orb {
@@ -145,7 +145,7 @@
 
   .orb.exhale {
     transform: scale(1);
-    transition: transform 4s cubic-bezier(0.45, 0, 0.4, 1), box-shadow 4s ease;
+    transition: transform 8s cubic-bezier(0.45, 0, 0.4, 1), box-shadow 8s ease;
     box-shadow: 0 0 60px 10px color-mix(in srgb, var(--orb-b) 35%, transparent);
   }
 
@@ -316,6 +316,12 @@
   const CIRC = 2 * Math.PI * 88;
   ring.style.strokeDasharray = CIRC;
 
+  // Técnica 4-7-8: inhalá 4s, sostené 7s, exhalá 8s.
+  const INHALE_S = 4;
+  const HOLD_S = 7;
+  const EXHALE_S = 8;
+  const TOTAL_S = INHALE_S + HOLD_S + EXHALE_S;
+
   let timers = [];
 
   function setLabel(text) {
@@ -351,7 +357,7 @@
 
     const start = Date.now();
     caption.style.opacity = 1;
-    caption.textContent = captionText(10);
+    caption.textContent = captionText(TOTAL_S);
 
     if (app && Number.isFinite(count) && count > 0) {
       attemptCount.textContent = `Freno #${count} con ${app.name}`;
@@ -372,16 +378,16 @@
       setLabel('Sostené');
       orb.classList.remove('inhale');
       orb.classList.add('hold');
-    }, 4000));
+    }, INHALE_S * 1000));
 
     timers.push(setTimeout(() => {
       setLabel('Exhalá');
       orb.classList.remove('hold');
       orb.classList.add('exhale');
-    }, 6000));
+    }, (INHALE_S + HOLD_S) * 1000));
 
     const countdownTick = () => {
-      const remaining = Math.max(0, 10 - Math.round((Date.now() - start) / 1000));
+      const remaining = Math.max(0, TOTAL_S - Math.round((Date.now() - start) / 1000));
       if (remaining > 0) {
         caption.textContent = captionText(remaining);
         timers.push(setTimeout(countdownTick, 1000));
@@ -395,7 +401,7 @@
       attemptCount.classList.remove('show');
       orbWrap.classList.add('hide');
       unlock.classList.add('show');
-    }, 10000));
+    }, TOTAL_S * 1000));
   }
 
   replayBtn.addEventListener('click', run);
